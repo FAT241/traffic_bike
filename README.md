@@ -19,8 +19,6 @@ Sau khi sửa mã, chạy lại `cmake --build build`. Có thể mở trực ti�
 Dự án dùng GLFW có sẵn trong `../../Dependencies` hoặc thư mục GLFW bên cạnh `TrafficSim`, không cần tải thêm tài nguyên.
 File EXE liên kết tĩnh các runtime MinGW; cần driver hỗ trợ OpenGL 2.1 / GLSL 1.20.
 
-Hai script trong `tools/` là tiện ích tùy chọn để ghép ảnh xem trước cho README. Chúng gọi file EXE để xuất ảnh PPM, rồi dùng Python và Pillow để ghép PNG hoặc GIF. Build, chạy và kiểm tra ứng dụng đều chỉ dùng mã C++.
-
 ## Phím
 | Phím | Chức năng |
 |---|---|
@@ -67,7 +65,6 @@ Chạy `build/TrafficSim.exe --model-test` để đo lưới ở tư thế thẳ
 
 Phím **3** mở cận cảnh, **M** đổi mẫu. Kết quả chụp từ chương trình nằm ở [ảnh hai mẫu](previews/Wave-Vision.png).
 Chạy `build/TrafficSim.exe --model-preview` để xuất ảnh PPM ở góc ngang, trước, sau, chính diện và góc đo trực giao vào thư mục `build`. Ảnh được đọc trực tiếp từ framebuffer OpenGL.
-Tiện ích tùy chọn `python tools/make_previews.py` ghép ảnh PNG (cần Pillow); chương trình C++ không cần Python/Pillow để chạy.
 
 ## Giao thông có trật tự
 
@@ -79,7 +76,7 @@ Tiện ích tùy chọn `python tools/make_previews.py` ghép ảnh PNG (cần P
 - HUD hiển thị màu đèn của hai trục, thời gian còn lại của pha và độ dài hàng chờ. `0.0s` trong pha đỏ toàn bộ nghĩa là đang chờ xe thoát, không phải lỗi đếm giờ.
 
 `--self-test` kiểm tra riêng dừng đỏ, hai trường hợp vàng, kéo dài đỏ toàn bộ, luồng đồng thời và nhường khi rẽ, sau đó chạy ba mật độ trong 30 phút mô phỏng mỗi mật độ. `--traffic-preview` xuất ảnh sáu pha và một chuỗi chuyển pha trực tiếp từ OpenGL.
-Tiện ích tùy chọn `python tools/make_traffic_previews.py` (Pillow) xuất ảnh PNG và `previews/Traffic-flow.gif`; GIF phát nhanh gấp 2 lần thời gian mô phỏng. Khi chạy ứng dụng bình thường, bước mô phỏng là 1/60 giây.
+Ảnh [Traffic-flow.gif](previews/Traffic-flow.gif) phát nhanh gấp 2 lần thời gian mô phỏng. Khi chạy ứng dụng bình thường, bước mô phỏng là 1/60 giây.
 
 ## Giới hạn mô phỏng
 
