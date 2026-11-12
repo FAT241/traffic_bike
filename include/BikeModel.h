@@ -39,7 +39,7 @@ struct BikeModel {
     BikeType type{};
     bool distant = false;
     // Vertices are stored in the local coordinates of each joint.
-    std::map<std::pair<Joint, Finish>, Mesh> batches;
+    std::map<std::pair<Joint, Finish>, Frame> batches;
     std::vector<V> seatControls;
     void build(BikeType kind, bool distantDetail = false);
     void draw(double distance, double steeringDegrees, bool braking, bool normals,

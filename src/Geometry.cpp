@@ -5,12 +5,12 @@
 using namespace std;
 
 // Chuyển quyền sở hữu lưới và bộ nhớ vẽ OpenGL sang đối tượng mới.
-Mesh::Mesh(Mesh &&other) noexcept
+Frame::Frame(Frame &&other) noexcept
     : displayList(exchange(other.displayList, 0)),
       vertices(move(other.vertices)), faces(move(other.faces)) {}
 
 // Thay lưới và thu hồi display list cũ trước khi nhận tài nguyên mới.
-Mesh &Mesh::operator=(Mesh &&other) noexcept {
+Frame &Frame::operator=(Frame &&other) noexcept {
     if (this != &other) {
         if (displayList)
             glDeleteLists(displayList, 1);
@@ -22,14 +22,14 @@ Mesh &Mesh::operator=(Mesh &&other) noexcept {
 }
 
 // Giải phóng lệnh vẽ đã lưu trong OpenGL.
-Mesh::~Mesh() {
+Frame::~Frame() {
     if (displayList)
         glDeleteLists(displayList, 1);
 }
 // Lấy mẫu một bề mặt tham số thành các mặt tam giác có pháp tuyến.
-static Mesh surface(function<V(double, double)> f, int nu = 40, int nv = 24,
+static Frame surface(function<V(double, double)> f, int nu = 40, int nv = 24,
                     bool reverse = true) {
-    Mesh m;
+    Frame m;
     auto v = [&](double u, double t) {
         V p = f(u, t);
         double e = 1e-5;
@@ -52,7 +52,7 @@ static Mesh surface(function<V(double, double)> f, int nu = 40, int nv = 24,
     return m;
 }
 // Dựng khối ellipsoid dùng làm mặt kính đèn tín hiệu.
-Mesh ellipsoid(double x, double y, double z) {
+Frame ellipsoid(double x, double y, double z) {
     return surface(
         [=](double u, double v) {
             double a = u * PI, b = v * 2 * PI;
@@ -61,13 +61,13 @@ Mesh ellipsoid(double x, double y, double z) {
         24, 24);
 }
 // Thêm ba đỉnh và một mặt tham chiếu đến các đỉnh đó.
-void Mesh::addTriangle(Vertex a, Vertex b, Vertex c) {
+void Frame::addTriangle(Vertex a, Vertex b, Vertex c) {
     size_t first = vertices.size();
     vertices.insert(vertices.end(), {a, b, c});
     faces.push_back({{first, first + 1, first + 2}});
 }
 // Vẽ các mặt của lưới và các đoạn pháp tuyến khi bật chế độ quan sát.
-void Mesh::draw(bool normals) const {
+void Frame::draw(bool normals) const {
     GLint compiling = 0;
     glGetIntegerv(GL_LIST_INDEX, &compiling);
     if (displayList) {

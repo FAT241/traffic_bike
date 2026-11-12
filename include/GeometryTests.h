@@ -5,21 +5,21 @@
 #include <utility>
 
 // Kiểm tra display list được chuyển quyền sở hữu và thu hồi khi thay hoặc hủy lưới.
-inline void runMeshResourceTests() {
+inline void runFrameResourceTests() {
     auto check = [](bool valid) {
         if (!valid)
-            throw std::runtime_error("OpenGL mesh resource lifetime failed");
+            throw std::runtime_error("OpenGL frame resource lifetime failed");
     };
     GLuint retainedList = 0;
     {
-        Mesh original = ellipsoid(.2, .2, .2);
+        Frame original = ellipsoid(.2, .2, .2);
         original.draw();
         retainedList = original.displayList;
         check(glIsList(retainedList));
 
-        Mesh moved(std::move(original));
+        Frame moved(std::move(original));
         check(original.displayList == 0 && moved.displayList == retainedList);
-        Mesh replacement = ellipsoid(.1, .1, .1);
+        Frame replacement = ellipsoid(.1, .1, .1);
         replacement.draw();
         GLuint discardedList = replacement.displayList;
         replacement = std::move(moved);
@@ -40,5 +40,5 @@ inline void runMeshResourceTests() {
     for (GLuint list : oldLists)
         check(!glIsList(list));
     check(glGetError() == GL_NO_ERROR);
-    std::cout << "RESOURCE PASS: mesh move / replacement / destruction / bike rebuild\n";
+    std::cout << "RESOURCE PASS: frame move / replacement / destruction / bike rebuild\n";
 }

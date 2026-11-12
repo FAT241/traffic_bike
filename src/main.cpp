@@ -61,7 +61,7 @@ static void key(GLFWwindow *w, int k, int, int action, int) {
             view.showroom = view.showroom == BikeType::Wave ? BikeType::Vision : BikeType::Wave;
         break;
     case GLFW_KEY_W:
-        view.wire = !view.wire;
+        view.showFrame = !view.showFrame;
         break;
     case GLFW_KEY_N:
         view.normals = !view.normals;
@@ -231,7 +231,7 @@ int main(int argc, char **argv) {
         double renderStart = last;
         bool smoke = argc > 1 && string(argv[1]) == "--smoke";
         if (smoke) {
-            runMeshResourceTests();
+            runFrameResourceTests();
             for (int i = 0; i < 3600; i++)
                 sim.step(1. / 60);
         }
@@ -269,7 +269,7 @@ int main(int argc, char **argv) {
                     view.orthographic = stage == 2 || stage == 5;
                     view.dimensions = stage == 4 || stage == 5;
                     view.paths = stage == 2;
-                    view.wire = stage == 6;
+                    view.showFrame = stage == 6;
                     view.phong = stage != 7;
                 }
                 renderer.draw(sim, view, width, height);

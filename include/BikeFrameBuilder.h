@@ -41,7 +41,7 @@ class Builder {
     BikeModel &model;
     const BikeSpec &spec;
     // Lấy lưới ứng với cụm chuyển động và vật liệu đang dựng.
-    Mesh &mesh(Finish f) { return model.batches[{joint, f}]; }
+    Frame &frame(Finish f) { return model.batches[{joint, f}]; }
     // Đưa vị trí đỉnh về hệ tọa độ cục bộ của cụm chuyển động.
     Vertex vertex(V p, V n) const { return {p - origin(spec, joint), n}; }
 
@@ -61,11 +61,11 @@ class Builder {
             n = n * (-1);
         }
         n = unit(n);
-        mesh(f).addTriangle(vertex(a, n), vertex(b, n), vertex(c, n));
+        frame(f).addTriangle(vertex(a, n), vertex(b, n), vertex(c, n));
     }
     // Lấy mẫu bề mặt thành lưới đỉnh và mặt tam giác dùng chung chỉ số.
     void grid(Finish f, int nu, int nv, const Surface &surface, bool flip = false) {
-        Mesh &out = mesh(f);
+        Frame &out = frame(f);
         const size_t first = out.vertices.size();
         for (int i = 0; i <= nu; i++)
             for (int k = 0; k <= nv; k++) {

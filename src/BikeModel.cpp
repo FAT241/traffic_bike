@@ -1,4 +1,4 @@
-#include "BikeMeshBuilder.h"
+#include "BikeFrameBuilder.h"
 #include "Transform.h"
 #include <iostream>
 #include <stdexcept>
@@ -134,7 +134,7 @@ void BikeModel::verify() const {
         for (const auto &vertex : batch.second.vertices) {
             V p = vertex.p + o;
             if (!isfinite(dot(p, p)) || fabs(length(vertex.n) - 1) > .00001)
-                throw runtime_error("Invalid bike mesh");
+                throw runtime_error("Invalid bike frame");
             low = {min(low.x, p.x), min(low.y, p.y), min(low.z, p.z)};
             high = {max(high.x, p.x), max(high.y, p.y), max(high.z, p.z)};
         }
@@ -171,7 +171,7 @@ void BikeModel::verify() const {
         if (fabs(v.p.x - seatX) < 1e-7)
             riderSeat = max(riderSeat, v.p.y);
     check(fabs(riderSeat - s.seatHeight) < 1e-6, "seat surface at rider station");
-    cout << s.name << (distant ? " [traffic]" : " [studio]") << ": mesh (mm, mirrors fitted) "
+    cout << s.name << (distant ? " [traffic]" : " [studio]") << ": frame (mm, mirrors fitted) "
               << lround(1000 * (high.x - low.x)) << " x "
               << lround(1000 * (high.z - low.z)) << " x "
               << lround(1000 * (high.y - low.y)) << ", rider seat "

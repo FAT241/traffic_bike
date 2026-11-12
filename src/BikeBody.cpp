@@ -1,4 +1,4 @@
-#include "BikeMeshBuilder.h"
+#include "BikeFrameBuilder.h"
 #include <string>
 
 using namespace std;
@@ -164,7 +164,7 @@ void stitchedSeat(Builder &b, const Stations &steps) {
 // Dựng đuôi xe, cụm đèn hậu và các chi tiết phía sau.
 void tail(Builder &b, const BikeSpec &s, bool wave) {
     // Tire is the foremost point at straight ahead. The lower rear mud flap
-    // fixes nominal overall length instead of stretching an entire bike mesh.
+    // fixes nominal overall length instead of stretching an entire bike frame.
     double xEnd = axle(s, true).x + s.front.radius() - s.length;
     double x = xEnd + (wave ? .13 : .095), y = wave ? .757 : .768;
     b.skin(Finish::Graphite,
@@ -274,6 +274,75 @@ void sideBadge(Builder &b, const Stations &stations, double power, bool wave) {
                            point(i, stroke[k]), .0015, 0, 6);
     }
 }
+// Dựng mặt tì chân có bề dày và các gờ chống trượt.
+void pedalPad(Builder &b, V center, double halfLength, double halfWidth, Finish finish) {
+    const vector<V> outline{
+        center + V{-halfLength, 0, -halfWidth}, center + V{halfLength, 0, -halfWidth},
+        center + V{halfLength, 0, halfWidth}, center + V{-halfLength, 0, halfWidth}};
+    b.panel(finish, outline, {0, 1, 0}, .006);
+    b.panel(finish, outline, {0, -1, 0}, .004);
+    for (int row : {-1, 0, 1}) {
+        const V ridge = center + V{row * halfLength * .46, .006, 0};
+        b.tube(finish, ridge + V{0, 0, -halfWidth * .68},
+               ridge + V{0, 0, halfWidth * .68}, .002, 0, 6);
+    }
+}
+
+// Dựng cần số hai đầu bên trái và bàn đạp phanh sau bên phải của Wave.
+void waveFootControls(Builder &b) {
+    const V shiftPivot{-.115, .260, -.124};
+    const V shiftHub{-.115, .260, -.181};
+    const V toePad{.055, .259, -.205};
+    const V heelPad{-.246, .265, -.205};
+    b.tube(Finish::DarkMetal, shiftPivot, shiftHub, .013);
+    b.tube(Finish::Alloy, shiftHub, toePad, .009);
+    b.tube(Finish::Alloy, shiftHub, heelPad, .009);
+    pedalPad(b, toePad, .019, .023, Finish::Rubber);
+    pedalPad(b, heelPad, .024, .024, Finish::Rubber);
+
+    const V brakePivot{-.218, .198, .091};
+    const V brakeElbow{-.193, .171, .145};
+    const V brakeRise{.068, .179, .156};
+    const V brakePad{.114, .229, .180};
+    b.tube(Finish::DarkMetal, {-.125, .230, .070}, brakePivot, .013);
+    b.tube(Finish::DarkMetal, brakePivot, brakeElbow, .013);
+    b.tube(Finish::Alloy, brakeElbow, brakeRise, .009);
+    b.tube(Finish::Alloy, brakeRise, brakePad, .009);
+    pedalPad(b, brakePad, .028, .027, Finish::Alloy);
+}
+
+// Dựng chống nghiêng và chống đứng ở tư thế gập sát gầm khi xe chạy.
+void foldedStands(Builder &b, double pivotX, double pivotY) {
+    const V sidePivot{pivotX + .08, pivotY, -.135};
+    const V sideBend = sidePivot + V{-.132, -.045, -.024};
+    const V sideFoot = sideBend + V{-.095, .005, -.016};
+    b.tube(Finish::DarkMetal, sidePivot + V{.025, .108, .069},
+           sidePivot + V{0, 0, .048}, .016);
+    b.tube(Finish::DarkMetal, sidePivot + V{0, 0, .060}, sidePivot, .015);
+    b.tube(Finish::DarkMetal, sidePivot, sideBend, .012);
+    b.tube(Finish::DarkMetal, sideBend, sideFoot, .011);
+    b.tube(Finish::DarkMetal, sideFoot + V{0, 0, -.018},
+           sideFoot + V{0, 0, .018}, .013);
+    b.tube(Finish::Alloy, sidePivot + V{-.014, .022, .010},
+           sideBend + V{.027, .018, .012}, .005);
+
+    b.tube(Finish::DarkMetal, {pivotX, pivotY, -.118}, {pivotX, pivotY, .118}, .013);
+    for (int side : {-1, 1}) {
+        const V legPivot{pivotX, pivotY, side * .108};
+        const V bend = legPivot + V{-.105, -.047, 0};
+        const V foot = bend + V{-.088, .006, 0};
+        b.tube(Finish::DarkMetal, legPivot + V{.036, .116, side * -.054},
+               legPivot, .016);
+        b.tube(Finish::DarkMetal, legPivot, bend, .013);
+        b.tube(Finish::DarkMetal, bend, foot, .012);
+        b.tube(Finish::DarkMetal, foot + V{0, 0, -.017}, foot + V{0, 0, .017}, .014);
+    }
+    b.tube(Finish::DarkMetal, {pivotX - .145, pivotY - .044, -.108},
+           {pivotX - .145, pivotY - .044, .108}, .011);
+    b.tube(Finish::DarkMetal, {pivotX - .14, pivotY - .044, -.108},
+           {pivotX - .168, pivotY - .020, -.220}, .010);
+}
+
 } // namespace
 
 // Lắp thân Wave từ các tiết diện ốp, yên, yếm và cụm động cơ.
@@ -328,7 +397,7 @@ void waveBody(Builder &b, const BikeSpec &s) {
         {.241, .196, .311, .064}
     };
     b.skin(Finish::Graphite, engineCoverSections, .7);
-    // Cast crankcase, finned cylinder, gear lever, right-side brake pedal and rider pegs.
+    // Lốc máy, xi lanh có cánh tản nhiệt và gác chân.
     b.tube(Finish::DarkMetal, {-.044, .299, -.115}, {-.044, .299, .110}, .091, 0, 32);
     b.tube(Finish::Alloy, {-.044, .299, .109}, {-.044, .299, .119}, .075, 0, 32);
     for (int i = 0; i < 6; i++) {
@@ -359,15 +428,13 @@ void waveBody(Builder &b, const BikeSpec &s) {
         {-.166, .26, .30, .015}
     };
     b.skin(Finish::DarkMetal, chainGuardSections, .60, -.079);
-    b.tube(Finish::Alloy, {-.115, .23, -.16}, {.052, .26, -.17}, .008);
-    b.tube(Finish::Rubber, {.052, .26, -.168}, {.052, .26, -.213}, .010);
     // Right crank cover has two cast lobes; boltheads and kick lever sit proud.
     b.tube(Finish::DarkMetal, {-.094, .286, .103}, {-.094, .286, .119}, .047, 0, 24);
     b.tube(Finish::Alloy, {-.043, .298, .117}, {-.043, .298, .123}, .050, 0, 28);
     b.tube(Finish::Bright, {-.109, .286, .125}, {-.158, .396, .138}, .008);
     b.tube(Finish::Rubber, {-.158, .396, .132}, {-.158, .396, .194}, .010);
-    b.tube(Finish::Alloy, {-.102, .212, .165}, {.075, .210, .17}, .008);
-    b.tube(Finish::DarkMetal, {.072, .208, .143}, {.072, .208, .196}, .010);
+    waveFootControls(b);
+    foldedStands(b, -.282, .175);
     exhaust(b, true);
 }
 // Lắp thân Vision từ các tiết diện ốp, yên, sàn để chân và hộp truyền động.
@@ -464,6 +531,7 @@ void visionBody(Builder &b, const BikeSpec &s) {
         bodyDecal(b, Finish::Graphite, sideCover, .56, sign,
                   {{-.756, .718}, {-.554, .660}, {-.380, .534}, {-.574, .644}});
     }
+    foldedStands(b, -.246, .163);
     exhaust(b, false);
 }
 

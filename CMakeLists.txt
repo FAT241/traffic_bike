@@ -27,7 +27,7 @@ add_executable(TrafficSim
 )
 set_target_properties(TrafficSim PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
 target_compile_options(TrafficSim PRIVATE -Wall -Wextra)
-target_include_directories(TrafficSim PRIVATE "${glfw_root}/include")
+target_include_directories(TrafficSim PRIVATE include "${glfw_root}/include")
 target_link_options(TrafficSim PRIVATE -static -static-libgcc -static-libstdc++)
 target_link_libraries(TrafficSim PRIVATE "${glfw_library}" opengl32 gdi32)
 

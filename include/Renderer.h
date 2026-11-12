@@ -8,7 +8,7 @@ struct View {
     double showroomYaw = 24, showroomPitch = 12, showroomDist = 2.9;
     bool cleanPreview = false;
     bool orthographic = false, dimensions = false;
-    bool wire = false, normals = false, paths = false, controls = false, paused = false,
+    bool showFrame = false, normals = false, paths = false, controls = false, paused = false,
          phong = true;
 };
 class Renderer {
@@ -23,7 +23,7 @@ class Renderer {
     void draw(const Simulation &sim, View &view, int width, int height);
 
   private:
-    Mesh signalLens;
+    Frame signalLens;
     V setupCamera(const Simulation &sim, View &view, size_t selectedIndex, int width, int height);
     void drawShowroom(const View &view);
     void drawIntersection(const Simulation &sim, const View &view);

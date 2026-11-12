@@ -44,7 +44,7 @@ Lưu lượng là số lần thử sinh xe mỗi giây; đầu đường bị đ
 ## Mã nguồn
 - `Math.h`: vector, phép quay và de Casteljau.
 - `BikeModel.*` chứa thông số xe, lắp ráp, kiểm tra kích thước và vẽ theo từng cụm chuyển động.
-- `BikeBody.cpp` dựng yên, ốp thân và các chi tiết thân xe Wave/Vision. `BikeRunningGear.cpp` dựng bánh và cụm lái. Hai phần dùng chung các thao tác sinh lưới trong `BikeMeshBuilder.h`.
+- `BikeBody.cpp` dựng yên, ốp thân và các chi tiết thân xe Wave/Vision. `BikeRunningGear.cpp` dựng bánh và cụm lái. Hai phần dùng chung các thao tác sinh lưới trong `BikeFrameBuilder.h`.
 - `Geometry.*` vẽ lưới tam giác và hình học của cảnh.
 - `Simulation.*`: bảng độ dài cung, đèn, hàng đợi, quyền vào ngã tư và khoảng cách an toàn.
 - `Renderer.*`, `Shader.h`: camera, cảnh, HUD, GLSL Phong và OpenGL Gouraud.
@@ -61,7 +61,7 @@ Dùng catalogue Honda Việt Nam tháng 10/2024 cho [Wave Alpha 110](https://cdn
 
 C++ dựng các tiết diện theo ảnh rồi nội suy Hermite có giới hạn độ dốc để tạo yên và ốp thân. Đường Bézier bậc hai bo các góc viền đèn và gương. Chương trình lấy mẫu các bề mặt thành tam giác; tem hông được chia nhỏ rồi ánh xạ lên đúng bề mặt cong. Bánh quay theo quãng đường chia cho bán kính riêng của lốp trước hoặc sau. Mã giữ ma trận riêng cho thân, cụm lái và hai bánh. Xe cách camera trên 12 m dùng lưới ít tam giác hơn.
 
-Lưới xe dùng mô hình mặt như Lab 04.2. `Mesh` lưu riêng danh sách đỉnh `vertices` và danh sách mặt `faces`. Mỗi `Face` chứa ba chỉ số đỉnh theo thứ tự quanh mặt. Khi lấy mẫu một bề mặt, các tam giác kề nhau dùng chung chỉ số tại các điểm lấy mẫu chung. Phím W hiển thị các cạnh của những mặt tam giác.
+Lưới xe dùng mô hình mặt như Lab 04.2. `Frame` lưu riêng danh sách đỉnh `vertices` và danh sách mặt `faces`. Mỗi `Face` chứa ba chỉ số đỉnh theo thứ tự quanh mặt. Khi lấy mẫu một bề mặt, các tam giác kề nhau dùng chung chỉ số tại các điểm lấy mẫu chung. Phím W hiển thị các cạnh của những mặt tam giác.
 
 Chạy `build/TrafficSim.exe --model-test` để đo lưới ở tư thế thẳng lái. Phép kiểm tra đối chiếu chiều dài, rộng, khoảng cách hai trục và cao độ bề mặt yên tại vị trí ngồi. Bán kính lốp tính từ cỡ lốp danh nghĩa. Trong mô hình, cao độ đỉnh ốp tay lái lấy theo số cao trong catalogue. Kích thước gương, kích thước từng chi tiết, màu và đường cong ốp là ước lượng từ ảnh. Chiều cao lưới có gương của Wave khoảng 1.261 mm, Vision khoảng 1.286 mm. Chưa có CAD hoặc số đo xe thật để xác nhận sai số từng bề mặt.
 

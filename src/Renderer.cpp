@@ -110,7 +110,7 @@ void Renderer::draw(const Simulation &sim, View &v, int w, int h) {
     glLightfv(GL_LIGHT0, GL_POSITION, light);
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, amb);
     glUseProgram(v.phong ? program : 0);
-    glPolygonMode(GL_FRONT_AND_BACK, v.wire ? GL_LINE : GL_FILL);
+    glPolygonMode(GL_FRONT_AND_BACK, v.showFrame ? GL_LINE : GL_FILL);
     if (v.mode == 2) {
         drawShowroom(v);
     } else {
@@ -351,7 +351,7 @@ void Renderer::drawHud(const Simulation &sim, const View &v, size_t selectedInde
         }
     }
     text(28, h - 73, "1 OVERVIEW  2 TOP  3 MODELS   4 FOLLOW | SPACE PAUSE  . STEP  R RESET", 1.4);
-    text(28, h - 51, "W MESH  N NORMALS  C CONTROLS  P PATHS  H SHADING  TAB BIKE  +/- INFLOW",
+    text(28, h - 51, "W FRAME  N NORMALS  C CONTROLS  P PATHS  H SHADING  TAB BIKE  +/- INFLOW",
          1.4);
     text(28, h - 29,
          "ARROWS ORBIT   SCROLL ZOOM   ESC EXIT | FIXED 60 HZ | QUEUES / SIGNALS / ROUTE CONFLICTS",
