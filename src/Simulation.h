@@ -5,11 +5,14 @@
 #include <random>
 #include <string>
 #include <vector>
+enum class Turn { Straight, Right, Left };
+
 struct Route {
     std::vector<V> points;
     std::vector<double> arc;
     double stop = 0, entry = 0, leave = 0, total = 0;
-    int side = 0, turn = 0;
+    int side = 0;
+    Turn turn = Turn::Straight;
     V position(double s) const;
     V tangent(double s) const;
 };
@@ -45,6 +48,12 @@ class Simulation {
     std::array<std::array<bool, 12>, 12> conflicts{};
     int phaseIndex = 0;
     double phaseElapsed = 0;
+    void releaseReservations();
+    void spawnVehicles(double dt);
+    void updateWaitingVehicles();
+    void grantReservations();
+    void moveVehicles(double dt);
+    void removeFinishedVehicles();
     void spawn();
     void updateSignal(double dt);
 };

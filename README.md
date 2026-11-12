@@ -1,15 +1,25 @@
 # Moto Intersection — C++ / OpenGL
 
-## Chạy
-- Mở `run.bat` hoặc `build/TrafficSim.exe`.
-- Mở `xem_xe.bat` để xem ngay hai mẫu xe ở cự ly gần.
-- Mở `giao_thong.bat` để xem ngã tư đã có xe và hàng đợi (khởi tạo trước 90 giây mô phỏng).
-- Biên dịch lại khi sửa mã: `build.bat` (cần g++ có trong PATH).
-- Kiểm tra mô phỏng: `build\TrafficSim.exe --self-test`.
-- Kiểm tra hiển thị tự động: `build\TrafficSim.exe --smoke`.
+## Build và chạy
 
-Dự án dùng GLFW có sẵn ở thư mục cha, không cần tải thêm tài nguyên.
+Mở PowerShell trong thư mục `TrafficSim`. Cần `cmake`, `ninja` và MinGW `g++` trong PATH.
+
+```powershell
+cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+.\build\TrafficSim.exe
+```
+
+Sau khi sửa mã, chạy lại `cmake --build build`. Có thể mở trực tiếp `build\TrafficSim.exe` từ File Explorer.
+
+- Xem cận cảnh hai mẫu xe bằng `.\build\TrafficSim.exe --showroom`.
+- Mở ngã tư đã chạy trước 90 giây bằng `.\build\TrafficSim.exe --traffic-demo`.
+- Kiểm tra mô hình xe, mô phỏng và hiển thị bằng `ctest --test-dir build --output-on-failure`.
+
+Dự án dùng GLFW có sẵn trong `../../Dependencies` hoặc thư mục GLFW bên cạnh `TrafficSim`, không cần tải thêm tài nguyên.
 File EXE liên kết tĩnh các runtime MinGW; cần driver hỗ trợ OpenGL 2.1 / GLSL 1.20.
+
+Hai script trong `tools/` là tiện ích tùy chọn để ghép ảnh xem trước cho README. Chúng gọi file EXE để xuất ảnh PPM, rồi dùng Python và Pillow để ghép PNG hoặc GIF. Build, chạy và kiểm tra ứng dụng đều chỉ dùng mã C++.
 
 ## Phím
 | Phím | Chức năng |
@@ -33,7 +43,9 @@ Lưu lượng là số lần thử sinh xe mỗi giây; đầu đường bị đ
 
 ## Mã nguồn
 - `Math.h`: vector, phép quay và de Casteljau.
-- `BikeModel.*` dựng hai mẫu xe, vật liệu và các cụm chuyển động. `Geometry.*` vẽ lưới tam giác và hình học của cảnh.
+- `BikeModel.*` chứa thông số xe, lắp ráp, kiểm tra kích thước và vẽ theo từng cụm chuyển động.
+- `BikeBody.cpp` dựng yên, ốp thân và các chi tiết thân xe Wave/Vision. `BikeRunningGear.cpp` dựng bánh và cụm lái. Hai phần dùng chung các thao tác sinh lưới trong `BikeMeshBuilder.h`.
+- `Geometry.*` vẽ lưới tam giác và hình học của cảnh.
 - `Simulation.*`: bảng độ dài cung, đèn, hàng đợi, quyền vào ngã tư và khoảng cách an toàn.
 - `Renderer.*`, `Shader.h`: camera, cảnh, HUD, GLSL Phong và OpenGL Gouraud.
 - `main.cpp`: điều khiển, bước thời gian cố định và kiểm tra tự động.
@@ -48,6 +60,8 @@ Dùng catalogue Honda Việt Nam tháng 10/2024 cho [Wave Alpha 110](https://cdn
 | Vision tiêu chuẩn | 1.871 × 686 × 1.101 | 1.255 / 761 | 80/90-14 / 90/90-14 |
 
 C++ dựng các tiết diện theo ảnh rồi nội suy Hermite có giới hạn độ dốc để tạo yên và ốp thân. Đường Bézier bậc hai bo các góc viền đèn và gương. Chương trình lấy mẫu các bề mặt thành tam giác; tem hông được chia nhỏ rồi ánh xạ lên đúng bề mặt cong. Bánh quay theo quãng đường chia cho bán kính riêng của lốp trước hoặc sau. Mã giữ ma trận riêng cho thân, cụm lái và hai bánh. Xe cách camera trên 12 m dùng lưới ít tam giác hơn.
+
+Lưới xe dùng mô hình mặt như Lab 04.2. `Mesh` lưu riêng danh sách đỉnh `vertices` và danh sách mặt `faces`. Mỗi `Face` chứa ba chỉ số đỉnh theo thứ tự quanh mặt. Khi lấy mẫu một bề mặt, các tam giác kề nhau dùng chung chỉ số tại các điểm lấy mẫu chung. Phím W hiển thị các cạnh của những mặt tam giác.
 
 Chạy `build/TrafficSim.exe --model-test` để đo lưới ở tư thế thẳng lái. Phép kiểm tra đối chiếu chiều dài, rộng, khoảng cách hai trục và cao độ bề mặt yên tại vị trí ngồi. Bán kính lốp tính từ cỡ lốp danh nghĩa. Trong mô hình, cao độ đỉnh ốp tay lái lấy theo số cao trong catalogue. Kích thước gương, kích thước từng chi tiết, màu và đường cong ốp là ước lượng từ ảnh. Chiều cao lưới có gương của Wave khoảng 1.261 mm, Vision khoảng 1.286 mm. Chưa có CAD hoặc số đo xe thật để xác nhận sai số từng bề mặt.
 
@@ -71,7 +85,7 @@ Tiện ích tùy chọn `python tools/make_traffic_previews.py` (Pillow) xuất 
 
 Đây là mô hình vi mô trên các quỹ đạo cố định và điều phối xung đột bảo thủ. Chưa mô phỏng luồn lách, đổi làn, người đi bộ hoặc hiệu chỉnh hành vi bằng số liệu giao thông thật. Thông số đèn và phản ứng là lựa chọn của bài mô phỏng, không phải cấu hình thiết kế một nút giao ngoài thực tế. Khi đầu đường đầy, lượt sinh xe bị bỏ.
 
-Chuyển động thường có giới hạn gia tốc/phanh; chặn khoảng cách cuối cùng là cơ chế an toàn và có thể dừng gấp. Hai mẫu xe dài lần lượt 1,913 m và 1,871 m. Cơ chế an toàn giữ khoảng cách tâm tối thiểu 2,25 m.
+Trong mô phỏng giao thông, mỗi xe có một vị trí tâm tính bằng quãng đường dọc quỹ đạo. Cả Wave lẫn Vision dùng chung quy tắc chuyển động và khoảng cách tâm tối thiểu 2,25 m. Các phép kiểm tra khoảng cách dùng vị trí tâm, còn kích thước và góc quay từng bánh phục vụ hiển thị. Chuyển động thường có giới hạn gia tốc/phanh; cơ chế chặn khoảng cách cuối bước có thể dừng xe gấp.
 
 OpenGL thực hiện depth test và face culling. Nhóm tự sinh lưới, tính pháp tuyến, lập trình tô sáng Phong và viết logic mô phỏng; không tự viết bộ rasterizer/Z-buffer phần mềm.
 

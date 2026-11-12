@@ -1,6 +1,33 @@
 #include "Geometry.h"
 #include <functional>
-static Mesh surface(std::function<V(double, double)> f, int nu = 40, int nv = 24,
+#include <utility>
+
+using namespace std;
+
+// Chuyển quyền sở hữu lưới và bộ nhớ vẽ OpenGL sang đối tượng mới.
+Mesh::Mesh(Mesh &&other) noexcept
+    : displayList(exchange(other.displayList, 0)),
+      vertices(move(other.vertices)), faces(move(other.faces)) {}
+
+// Thay lưới và thu hồi display list cũ trước khi nhận tài nguyên mới.
+Mesh &Mesh::operator=(Mesh &&other) noexcept {
+    if (this != &other) {
+        if (displayList)
+            glDeleteLists(displayList, 1);
+        displayList = exchange(other.displayList, 0);
+        vertices = move(other.vertices);
+        faces = move(other.faces);
+    }
+    return *this;
+}
+
+// Giải phóng lệnh vẽ đã lưu trong OpenGL.
+Mesh::~Mesh() {
+    if (displayList)
+        glDeleteLists(displayList, 1);
+}
+// Lấy mẫu một bề mặt tham số thành các mặt tam giác có pháp tuyến.
+static Mesh surface(function<V(double, double)> f, int nu = 40, int nv = 24,
                     bool reverse = true) {
     Mesh m;
     auto v = [&](double u, double t) {
@@ -14,16 +41,17 @@ static Mesh surface(std::function<V(double, double)> f, int nu = 40, int nv = 24
         for (int j = 0; j < nv; j++) {
             double u = double(i) / nu, U = double(i + 1) / nu, t = double(j) / nv,
                    T = double(j + 1) / nv;
-            std::vector<Vertex> quad = {v(u, t), v(U, t), v(U, T), v(u, t), v(U, T), v(u, T)};
+            vector<Vertex> quad = {v(u, t), v(U, t), v(U, T), v(u, t), v(U, T), v(u, T)};
             if (reverse) {
-                std::swap(quad[1], quad[2]);
-                std::swap(quad[4], quad[5]);
+                swap(quad[1], quad[2]);
+                swap(quad[4], quad[5]);
             }
-            for (auto p : quad)
-                m.vertices.push_back(p);
+            m.addTriangle(quad[0], quad[1], quad[2]);
+            m.addTriangle(quad[3], quad[4], quad[5]);
         }
     return m;
 }
+// Dựng khối ellipsoid dùng làm mặt kính đèn tín hiệu.
 Mesh ellipsoid(double x, double y, double z) {
     return surface(
         [=](double u, double v) {
@@ -32,6 +60,13 @@ Mesh ellipsoid(double x, double y, double z) {
         },
         24, 24);
 }
+// Thêm ba đỉnh và một mặt tham chiếu đến các đỉnh đó.
+void Mesh::addTriangle(Vertex a, Vertex b, Vertex c) {
+    size_t first = vertices.size();
+    vertices.insert(vertices.end(), {a, b, c});
+    faces.push_back({{first, first + 1, first + 2}});
+}
+// Vẽ các mặt của lưới và các đoạn pháp tuyến khi bật chế độ quan sát.
 void Mesh::draw(bool normals) const {
     GLint compiling = 0;
     glGetIntegerv(GL_LIST_INDEX, &compiling);
@@ -43,10 +78,12 @@ void Mesh::draw(bool normals) const {
             glNewList(displayList, GL_COMPILE);
         }
         glBegin(GL_TRIANGLES);
-        for (auto &v : vertices) {
-            glNormal3d(v.n.x, v.n.y, v.n.z);
-            glVertex3d(v.p.x, v.p.y, v.p.z);
-        }
+        for (const Face &face : faces)
+            for (size_t index : face.vertexIndices) {
+                const Vertex &v = vertices[index];
+                glNormal3d(v.n.x, v.n.y, v.n.z);
+                glVertex3d(v.p.x, v.p.y, v.p.z);
+            }
         glEnd();
         if (!compiling) {
             glEndList();
@@ -57,8 +94,8 @@ void Mesh::draw(bool normals) const {
         glDisable(GL_LIGHTING);
         glColor3f(.2, 1, .8);
         glBegin(GL_LINES);
-        for (size_t i = 0; i < vertices.size(); i += 24) {
-            auto v = vertices[i];
+        for (size_t i = 0; i < faces.size(); i += 8) {
+            const Vertex &v = vertices[faces[i].vertexIndices[0]];
             glVertex3d(v.p.x, v.p.y, v.p.z);
             V q = v.p + v.n * .1;
             glVertex3d(q.x, q.y, q.z);
@@ -67,6 +104,7 @@ void Mesh::draw(bool normals) const {
         glEnable(GL_LIGHTING);
     }
 }
+// Đặt màu khuếch tán và độ bóng của vật liệu OpenGL.
 void material(V c, double shine) {
     GLfloat diffuse[] = {(float)c.x, (float)c.y, (float)c.z, 1}, spec[] = {.45, .45, .45, 1};
     glColor3f(c.x, c.y, c.z);
@@ -74,6 +112,7 @@ void material(V c, double shine) {
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
     glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shine);
 }
+// Vẽ hình hộp từ tám đỉnh và sáu mặt, dùng cho đường, vỉa hè và nhà.
 void box(double x, double y, double z) {
     V p[8] = {{-x / 2, 0, -z / 2}, {x / 2, 0, -z / 2}, {x / 2, y, -z / 2}, {-x / 2, y, -z / 2},
               {-x / 2, 0, z / 2},  {x / 2, 0, z / 2},  {x / 2, y, z / 2},  {-x / 2, y, z / 2}};
@@ -88,6 +127,7 @@ void box(double x, double y, double z) {
     }
     glEnd();
 }
+// Vẽ thanh trụ nối hai điểm, dùng cho cột và cần đèn giao thông.
 void rod(V a, V b, double radius) {
     V axis = unit(b - a), side = unit(cross(axis, fabs(axis.y) < .9 ? V{0, 1, 0} : V{1, 0, 0})),
       up = cross(axis, side);

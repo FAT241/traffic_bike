@@ -13,8 +13,20 @@ struct View {
 };
 class Renderer {
   public:
+    Renderer() = default;
+    Renderer(const Renderer &) = delete;
+    Renderer &operator=(const Renderer &) = delete;
+    ~Renderer();
     std::array<BikeModel, 2> models, distantModels;
     GLuint program = 0;
     void init();
     void draw(const Simulation &sim, View &view, int width, int height);
+
+  private:
+    Mesh signalLens;
+    V setupCamera(const Simulation &sim, View &view, size_t selectedIndex, int width, int height);
+    void drawShowroom(const View &view);
+    void drawIntersection(const Simulation &sim, const View &view);
+    void drawVehicles(const Simulation &sim, const View &view, V eye);
+    void drawHud(const Simulation &sim, const View &view, size_t selectedIndex, int width, int height);
 };

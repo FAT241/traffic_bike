@@ -26,6 +26,7 @@ inline Matrix4x4 multipleMatrix(const Matrix4x4 &a, const Matrix4x4 &b) {
     return result;
 }
 
+// Tạo ma trận tịnh tiến điểm theo ba trục.
 inline Matrix4x4 translationMatrix(double tx, double ty, double tz) {
     Matrix4x4 result = identityMatrix();
     result.m[0][3] = tx;
@@ -34,6 +35,7 @@ inline Matrix4x4 translationMatrix(double tx, double ty, double tz) {
     return result;
 }
 
+// Tạo ma trận thay đổi tỷ lệ theo ba trục.
 inline Matrix4x4 scalingMatrix(double sx, double sy, double sz) {
     Matrix4x4 result = identityMatrix();
     result.m[0][0] = sx;
@@ -42,6 +44,7 @@ inline Matrix4x4 scalingMatrix(double sx, double sy, double sz) {
     return result;
 }
 
+// Tạo ma trận quay quanh trục X, góc tính bằng độ.
 inline Matrix4x4 rotationXMatrix(double degrees) {
     double a = degrees * PI / 180, c = cos(a), s = sin(a);
     Matrix4x4 result = identityMatrix();
@@ -51,6 +54,7 @@ inline Matrix4x4 rotationXMatrix(double degrees) {
     return result;
 }
 
+// Tạo ma trận quay quanh trục Y, góc tính bằng độ.
 inline Matrix4x4 rotationYMatrix(double degrees) {
     double a = degrees * PI / 180, c = cos(a), s = sin(a);
     Matrix4x4 result = identityMatrix();
@@ -60,6 +64,7 @@ inline Matrix4x4 rotationYMatrix(double degrees) {
     return result;
 }
 
+// Tạo ma trận quay quanh trục Z, góc tính bằng độ.
 inline Matrix4x4 rotationZMatrix(double degrees) {
     double a = degrees * PI / 180, c = cos(a), s = sin(a);
     Matrix4x4 result = identityMatrix();
@@ -69,6 +74,7 @@ inline Matrix4x4 rotationZMatrix(double degrees) {
     return result;
 }
 
+// Ghép tịnh tiến và quay để giữ nguyên điểm làm tâm quay.
 inline Matrix4x4 rotationAroundPointMatrix(V pivot, const Matrix4x4 &rotation) {
     // Move pivot to origin, rotate, move back: T(pivot) * R * T(-pivot).
     return multipleMatrix(
@@ -86,6 +92,7 @@ inline V transformPoint(const Matrix4x4 &matrix, V p) {
     return {output[0] / output[3], output[1] / output[3], output[2] / output[3]};
 }
 
+// Đổi tọa độ thế giới sang hệ quan sát từ vị trí mắt nhìn và mục tiêu.
 inline Matrix4x4 lookAtMatrix(V eye, V target) {
     V f = unit(target - eye), right = unit(cross(f, {0, 1, 0})), up = cross(right, f);
     Matrix4x4 orientation = identityMatrix();
@@ -101,6 +108,7 @@ inline Matrix4x4 lookAtMatrix(V eye, V target) {
     return multipleMatrix(orientation, translationMatrix(-eye.x, -eye.y, -eye.z));
 }
 
+// Tạo phép chiếu phối cảnh, vật xa mắt nhìn hiện nhỏ hơn.
 inline Matrix4x4 perspectiveMatrix(double fovDegrees, double aspect, double near, double far) {
     Matrix4x4 result;
     double f = 1 / tan(fovDegrees * PI / 360);
@@ -112,6 +120,7 @@ inline Matrix4x4 perspectiveMatrix(double fovDegrees, double aspect, double near
     return result;
 }
 
+// Tạo phép chiếu trực giao trong vùng nhìn được chỉ định.
 inline Matrix4x4 orthographicMatrix(double left, double right, double bottom, double top,
                                     double near, double far) {
     Matrix4x4 result = identityMatrix();
